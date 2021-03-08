@@ -19,7 +19,6 @@
 
 #include <effect.h>
 #include <consts.h>
-#include "DelayLin.hpp"
 
 using namespace ape;
 
@@ -104,26 +103,24 @@ private:
 		const float parWet = wet;		
 		const float parLPHz = LPHz;
 		const float parHPHz = HPHz;
-		 	  float parlength = length*length;
 		const float parspreadXch = spreadXch;
 		const float parfdbk = fdbk*0.998f;		
 
+		
 		for (std::size_t c = 0; c < shared; ++c)
 		{	
 			const float sr = config().sampleRate;
 			HPfilter[c].setFreq(parHPHz, sr);
 			LPfilter[c].setFreq(parLPHz, sr);
 			DCfilter1[c].setFreq(40.0f, sr);
-			Smoothing[c].setFreq(2.0f, sr);			
-		}
-		
-		for (std::size_t c = 0; c < shared; ++c)
-		{		
-			parlength += c&1 ? parspreadXch : 0.0f; // even channels offset
-			parlength = std::clamp(parlength, 0.0f, 1.0f);
-		
+			Smoothing[c].setFreq(2.0f, sr);	
+				
 			for (std::size_t n = 0; n < frames; ++n)
-			{
+			{			
+				auto parlength = length[n]; // lerp by APE
+				parlength += c&1 ? parspreadXch : 0.0f; // even channels offset
+				parlength = std::clamp(parlength, 0.0f, 1.0f);			
+
 				const float out = Lines[c].readAt(maxSamples*Smoothing[c].filterLP(parlength)); 
 
 				const float inS = inputs[c][n];
