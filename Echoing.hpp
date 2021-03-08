@@ -19,6 +19,7 @@
 
 #include <effect.h>
 #include <consts.h>
+#include "DelayLin.hpp"
 
 using namespace ape;
 
