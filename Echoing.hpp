@@ -27,11 +27,10 @@ GlobalData(Echoing, "");
 class Echoing : public Effect
 {
 public:
-
-	Param<float>    LPHz{     	"LPHz", 	Range(500, 6500, Range::Exp) }; // input filter
-	Param<float>    HPHz{ 		"HPHz", 	Range(20, 1900, Range::Exp) }; // input filter
 	Param<float>    length{  	"length",   Range(0, 1) };
 	Param<float>    spreadXch{  "spreadXch", Range(0, 0.5f) };
+	Param<float>    LPHz{     	"LPHz", 	Range(500, 6500, Range::Exp) };
+	Param<float>    HPHz{ 		"HPHz", 	Range(20, 1900, Range::Exp) };
 	Param<float>    fdbk{  		"repeat",   Range(0, 1) };
 	Param<float>    wet{   		"dry/wet", 	Range(0, 1) };
 
@@ -79,10 +78,10 @@ private:
 	void start(const IOConfig& cfg) override
 	{ 
 		// starting preset
-		HPHz = 37.0f;
-		LPHz = 4400.0f;
 		length = 0.5f;
 		spreadXch = 0.25f;
+		HPHz = 37.0f;
+		LPHz = 4400.0f;
 		fdbk = 0.87f;
 		wet = 1.0f;
 
