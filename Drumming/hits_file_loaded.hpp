@@ -28,7 +28,9 @@ public:
 	HitsPlaying()
 	{
 		volume1 = 0.5f;
-		speed1 = 1.0f;		
+		speed1 = 1.0f;	
+		volume2 = 0.5f;
+		speed2 = 1.0f;		
 	}
 
 private:
@@ -46,6 +48,9 @@ private:
 	AudioFilePlayer audioFilePlayer3;
 	AudioFilePlayer audioFilePlayer4;
 	
+	std::vector<float> channel1;
+	std::vector<float> channel2;
+	
 
 	void setStereoGain(umatrix<float>& buffer, size_t frames, float gain)
 	{
@@ -54,26 +59,49 @@ private:
 			buffer[0][i] *= gain;
 			buffer[1][i] *= gain;
 		}
+	}	
+	void copyToStereo(std::vector<float>& channelN, umatrix<float>& buffer, size_t frames)
+	{
+		for(size_t i = 0; i < frames; ++i)
+		{
+			buffer[0][i] = channelN[i];
+			buffer[1][i] = channelN[i];
+		}
+	}
+	void addToStereo(std::vector<float>& channelN, umatrix<float>& buffer, size_t frames)
+	{
+		for(size_t i = 0; i < frames; ++i)
+		{
+			buffer[0][i] += channelN[i];
+			buffer[1][i] += channelN[i];
+		}
+	}
+	
+	void start(const IOConfig& cfg) override
+	{
+	
+		channel1.resize(cfg.maxBlockSize);
+		channel2.resize(cfg.maxBlockSize);
 	}
 
 	void process(umatrix<float> buffer, size_t frames) override
-	{
-
-		clear(buffer, buffer.channels());
+	{	
 
 		assert(buffer.channels() == 2);
-		const float sampleRate = config().sampleRate;
+		const float sampleRate = config().sampleRate;	
 		
-
+		
 		if(files.empty())
 			abort("no files to play");
 
 		if(volume1 > 0.0f)
 		{
+		
 			audioFilePlayer1.setSpeed(speed1);
 			auto& file = files[(int)(File)fileParam1];		
 			audioFilePlayer1.setFile(&file);
-			audioFilePlayer1.blockPlayFile(buffer, frames, sampleRate, volume1);
+			audioFilePlayer1.blockPlayFile(channel1, frames, sampleRate, volume1);
+			copyToStereo(channel1, buffer, frames);
 		}
 		
 		if(volume2 > 0.0f)
@@ -81,7 +109,8 @@ private:
 			audioFilePlayer2.setSpeed(speed2);
 			auto& file = files[(int)(File)fileParam2];		
 			audioFilePlayer2.setFile(&file);				
-			audioFilePlayer2.blockPlayFile(buffer, frames, sampleRate, volume2);
+			audioFilePlayer2.blockPlayFile(channel2, frames, sampleRate, volume2);
+			addToStereo(channel2, buffer, frames);
 		}
 	}
 };

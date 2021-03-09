@@ -17,7 +17,7 @@ public:
 		speed = value;	
 	}
 
-	bool blockPlayFile(umatrix<float>& buffer, size_t frames, float sampleRate, float gain)
+	bool blockPlayFile(std::vector<float>& buffer, size_t frames, float sampleRate, float gain)
 	{	
 		if(!file)
 			abort("selected file not valid");
@@ -40,8 +40,7 @@ public:
 			for(size_t h = 0; h < 7; ++h) 
 				history[h] = signal(x + h + offset);  // not all history[] used by hermite4()		
 
-			buffer[0][i] = interpolate(frac)*gain;
-			buffer[1][i] = interpolate(frac)*gain;
+			buffer[i] = interpolate(frac)*gain;
 
 			position += ratio * speed;
 
@@ -71,4 +70,6 @@ private:
 
 	float speed = 1.0f;	
 	AudioFile* file = 0;
+
+	std::vector<float> buffer;
 };
