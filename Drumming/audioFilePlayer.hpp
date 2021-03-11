@@ -16,6 +16,19 @@ public:
 	{
 		speed = value;	
 	}
+	void setLoop( bool value)
+	{
+		loop = value;	
+	}
+	void start()
+	{
+		position = 0;
+	}
+
+	void setTriggers(std::vector<int>* ptr)
+	{
+		trigger = ptr;
+	}
 
 	bool blockPlayFile(std::vector<float>& buffer, size_t frames, float sampleRate, float gain)
 	{	
@@ -31,8 +44,11 @@ public:
 			return hermite4(frac, history[xm1], history[x0], history[x1], history[x2]);	
 		};
 
+		const bool ok = (trigger != 0) && (trigger->size() <= frames);
+
 		for(size_t i = 0; i < frames; ++i)
-		{
+		{			
+			if(ok && trigger->at(i) == 1) position = 0;
 			const auto x = static_cast<long long>(position);
 			const auto frac = position - x;
 			const auto offset = -2;
@@ -40,12 +56,20 @@ public:
 			for(size_t h = 0; h < 7; ++h) 
 				history[h] = signal(x + h + offset);  // not all history[] used by hermite4()		
 
-			buffer[i] = interpolate(frac)*gain;
+			if(position < file->samples())
+			{
+				buffer[i] = interpolate(frac)*gain;
+			}
+			else
+			{
+				buffer[i] = 0.0f; 					
+			}
 
 			position += ratio * speed;
 
-			while(position >= file->samples()) // loop
-				position -= file->samples();
+			while(loop && position >= file->samples()) 
+				position -= file->samples(); // loop
+
 		}
 
 		return true;
@@ -69,7 +93,9 @@ private:
 	fpoint history[7] {};
 
 	float speed = 1.0f;	
+	bool loop = false;
 	AudioFile* file = 0;
 
 	std::vector<float> buffer;
+	std::vector<int>* trigger = 0;
 };
