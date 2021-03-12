@@ -52,6 +52,9 @@ public:
 	Param<File> fileParam2{ "File2", { "Kick", "Snare", "Hihat1", "Hihat2" } };
 	Param<float> speed2{ "Speed2", Range(0.01, 10, Range::Exp) };
 	Param<float> volume2{ "Volume2" };
+	
+	MeteredValue left = MeteredValue("<");
+	MeteredValue right = MeteredValue(">");
 
 	Drumming()
 	{
@@ -173,6 +176,12 @@ private:
 			audioFilePlayer2.setFile(&file);				
 			audioFilePlayer2.blockPlayFile(channel2, frames, SR, volume2);
 			addToStereo(channel2, outputs, frames);
+		}
+
+		for (std::size_t n = 0; n < frames; ++n)
+		{
+			left = outputs[0][n];
+			right = outputs[1][n];
 		}
 
 		//clear(outputs, shared);
